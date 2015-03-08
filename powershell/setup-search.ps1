@@ -21,7 +21,7 @@ $nmPath = "file:///"
 $nmPath += $path
 $nmPath += "\node_modules\*"
 
-"Ignoring " + $tmpPath + " and " + $nmPath + " from Windows Search"
+"Removing " + $tmpPath + " and " + $nmPath + " from Search Index"
 
 # Load DLL, get SearchManagerClass
 Add-Type -Path Microsoft.Search.Interop.dll
