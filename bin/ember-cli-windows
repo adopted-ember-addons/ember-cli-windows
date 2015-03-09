@@ -1,0 +1,51 @@
+#! /usr/bin/env node
+
+var spawn = require('child_process').spawn,
+    path = require('path'),
+    args = process.argv;
+
+// Helper functions
+function runPowershell(scriptPath, name, cb) {
+    var child = spawn('powershell.exe', scriptPath);
+
+    child.stdout.on('data', function (data) {
+        console.log(data);
+    });
+
+    child.stderr.on('data', function (data) {
+        console.log('Configuration Error: ', data);
+    });
+
+    child.on('exit', function () {
+        console.log(name + ' configured!');
+        cb();
+    });
+    child.stdin.end();
+}
+
+function configureSearch(cb) {
+    var scriptPath = path.resolve(__dirname, '../powershell/setup-search.ps1'),
+        name = 'Windows Search';
+
+    runPowershell(scriptPath, name, cb);
+}
+
+function configureDefender(cb) {
+    var scriptPath = path.resolve(__dirname, '../powershell/setup-defender.ps1'),
+        name = 'Windows Defender';
+
+    runPowershell(scriptPath, name, cb);
+}
+
+// Check args, run PS
+
+if (args && args[2] && (args[2] === 'search' || args[2] === 'defender')) {
+    if (args[2] === 'search') {
+        configureSearch();
+    } else if (args[2] === 'defender') {
+        configureDefender();
+    }
+} else {
+    configureSearch();
+    configureDefender();
+}
