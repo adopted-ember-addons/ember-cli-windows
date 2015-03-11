@@ -94,13 +94,13 @@ prompt.get([{
         console.log('Configuring Defender');
         configureDefender(function () {
             console.log('Finished Defender Configuration.');
-        })
+        });
     }
 
     if (search) {
         console.log('Configuring Search');
         configureSearch(function () {
             console.log('Finished Search Configuration.');
-        })
+        });
     }
 });
