@@ -2,18 +2,24 @@
 
 var spawn = require('child_process').spawn,
     path = require('path'),
-    args = process.argv;
+    chalk = require('chalk'),
+    prompt = require('prompt'),
+    isWin = /^win/.test(process.platform),
+    args = process.argv,
+    dir = process.cwd(),
+    defender, search, target;
 
 // Helper functions
 function runPowershell(scriptPath, name, cb) {
-    var child = spawn('powershell.exe', scriptPath);
+    console.log(scriptPath);
+    var child = spawn('powershell.exe', [scriptPath]);
 
     child.stdout.on('data', function (data) {
-        console.log(data);
+        console.log(data.toString());
     });
 
     child.stderr.on('data', function (data) {
-        console.log('Configuration Error: ', data);
+        console.log('Configuration Error: ', data.toString());
     });
 
     child.on('exit', function () {
@@ -24,28 +30,77 @@ function runPowershell(scriptPath, name, cb) {
 }
 
 function configureSearch(cb) {
-    var scriptPath = path.resolve(__dirname, '../powershell/setup-search.ps1'),
+    var scriptPath = path.resolve(__dirname, '../powershell/setup-search.ps1') + ' -path ' + dir,
         name = 'Windows Search';
 
     runPowershell(scriptPath, name, cb);
 }
 
 function configureDefender(cb) {
-    var scriptPath = path.resolve(__dirname, '../powershell/setup-defender.ps1'),
+    var scriptPath = path.resolve(__dirname, '../powershell/setup-defender.ps1') + ' -path ' + dir,
         name = 'Windows Defender';
 
     runPowershell(scriptPath, name, cb);
 }
 
-// Check args, run PS
+// Check OS
+if (!isWin) {
+    return console.error('This script configures Windows, but the OS is not Windows.');
+}
 
+// Check args, run PS
 if (args && args[2] && (args[2] === 'search' || args[2] === 'defender')) {
     if (args[2] === 'search') {
-        configureSearch();
+        search = true;
     } else if (args[2] === 'defender') {
-        configureDefender();
+        defender = true;
     }
 } else {
-    configureSearch();
-    configureDefender();
+    search = true;
+    defender = true;
 }
+
+if (defender && search) {
+    target = 'Windows Defender and Windows Search';
+} else if (defender && !search) {
+    target = 'Windows Defender';
+} else if (search && !defender) {
+    target = 'Windows Search';
+}
+
+prompt.message = 'Confirm';
+prompt.start();
+console.log(chalk.red.bold('Configure Windows for Ember-Cli Performace'));
+console.log('If you continue, this tool will open two PS windows to automate configuration of ' + target);
+
+prompt.get([{
+    name: 'confirm',
+    description: 'Do you want to proceed? (Y/N)',
+    pattern: /[yYnN]/, 
+    type: 'string',
+    required: true
+}], function (err, results) {
+    var confirm = results.confirm;
+
+    if (err) {
+        return console.error(err);
+    }
+
+    if (confirm === 'n' || confirm === 'N') {
+        return console.log('Operation aborted');
+    }
+
+    if (defender) {
+        console.log('Configuring Defender');
+        configureDefender(function () {
+            console.log('Finished Defender Configuration.');
+        })
+    }
+
+    if (search) {
+        console.log('Configuring Search');
+        configureSearch(function () {
+            console.log('Finished Search Configuration.');
+        })
+    }
+});

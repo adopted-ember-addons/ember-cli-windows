@@ -17,14 +17,10 @@ $tmpPath = "file:///"
 $tmpPath += $path
 $tmpPath += "\tmp\*"
 
-$nmPath = "file:///"
-$nmPath += $path
-$nmPath += "\node_modules\*"
-
-"Removing " + $tmpPath + " and " + $nmPath + " from Search Index"
+"Removing " + $tmpPath + " from Search Index"
 
 # Load DLL, get SearchManagerClass
-Add-Type -Path Microsoft.Search.Interop.dll
+Add-Type -Path (Join-Path $PSScriptRoot "Microsoft.Search.Interop.dll")
 
 $sm = New-Object Microsoft.Search.Interop.CSearchManagerClass 
 $catalog = $sm.GetCatalog("SystemIndex")
@@ -32,7 +28,6 @@ $crawlman = $catalog.GetCrawlScopeManager()
 
 # Add Folders to Rules
 $crawlman.AddUserScopeRule($tmpPath,$false,$true,$null)
-$crawlman.AddUserScopeRule($nmPath,$false,$true,$null)
 $crawlman.SaveAll()
 
 "Done"

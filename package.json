@@ -1,6 +1,6 @@
 {
   "name": "ember-cli-windows",
-  "version": "0.9.0",
+  "version": "0.1.6",
   "private": false,
   "preferGlobal": "true",
   "bin": {
@@ -39,5 +39,7 @@
     "load-grunt-tasks": "^1.0.0"
   },
   "dependencies": {
+    "chalk": "^1.0.0",
+    "prompt": "^0.2.14"
   }
 }

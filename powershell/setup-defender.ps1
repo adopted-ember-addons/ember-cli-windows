@@ -13,6 +13,9 @@ Param(
     [string]$path
 )
 
+$tmpPath = $path
+$tmpPath += "\tmp"
+
 function IsAdministrator
 {
     $Identity = [System.Security.Principal.WindowsIdentity]::GetCurrent()
