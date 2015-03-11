@@ -4,6 +4,7 @@ var spawn = require('child_process').spawn,
     path = require('path'),
     chalk = require('chalk'),
     prompt = require('prompt'),
+    fs = require('fs'),
     isWin = /^win/.test(process.platform),
     args = process.argv,
     dir = process.cwd(),
@@ -48,7 +49,7 @@ if (!isWin) {
     return console.error('This script configures Windows, but the OS is not Windows.');
 }
 
-// Check args, run PS
+// Check args
 if (args && (args.indexOf('search') > -1 || args.indexOf('defender') > -1)) {
     if (args.indexOf('search') > -1) {
         search = true;
@@ -68,6 +69,12 @@ if (defender && search) {
     target = 'Windows Search';
 }
 
+// Make sure tmp exists
+if (!fs.existsSync(dir + '/tmp')) {
+    fs.mkdirSync(dir + '/tmp');
+}
+
+// Execute
 if (args.indexOf('headless') > -1) {
     console.log('Configuring Defender');
     configureDefender(function () {
