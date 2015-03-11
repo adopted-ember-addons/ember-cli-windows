@@ -10,5 +10,8 @@ ember-cli-windows
 
 If you want to configure Windows Defender or Windows Search only, add `defender` or `search` as a parameter.
 
+## Ember Addon
+This tool is also available as an Ember Addon, allowing you to ship the 'optimizing for Windows' capabilities with your project. For more information, [check out the addon here](https://github.com/felixrieseberg/ember-cli-windows-addon).
+
 ## License
 MIT License, Copyright 2015 Felix Rieseberg & Microsoft. See LICENSE for more information.

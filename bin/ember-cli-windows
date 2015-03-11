@@ -68,39 +68,50 @@ if (defender && search) {
     target = 'Windows Search';
 }
 
-prompt.message = 'Confirm';
-prompt.start();
-console.log(chalk.red.bold('Configure Windows for Ember-Cli Performace'));
-console.log('If you continue, this tool will open two PS windows to automate configuration of ' + target);
+if (args.indexOf('headless') > -1) {
+    console.log('Configuring Defender');
+    configureDefender(function () {
+        console.log('Finished Defender Configuration.');
+    });
+    console.log('Configuring Search');
+    configureSearch(function () {
+        console.log('Finished Search Configuration.');
+    });
+} else {
+    prompt.message = 'Confirm';
+    prompt.start();
+    console.log(chalk.red.bold('Configure Windows for Ember-Cli Performace'));
+    console.log('If you continue, this tool will open two PS windows to automate configuration of ' + target);
 
-prompt.get([{
-    name: 'confirm',
-    description: 'Do you want to proceed? (Y/N)',
-    pattern: /[yYnN]/, 
-    type: 'string',
-    required: true
-}], function (err, results) {
-    var confirm = results.confirm;
+    prompt.get([{
+        name: 'confirm',
+        description: 'Do you want to proceed? (Y/N)',
+        pattern: /[yYnN]/, 
+        type: 'string',
+        required: true
+    }], function (err, results) {
+        var confirm = results.confirm;
 
-    if (err) {
-        return console.error(err);
-    }
+        if (err) {
+            return console.error(err);
+        }
 
-    if (confirm === 'n' || confirm === 'N') {
-        return console.log('Operation aborted');
-    }
+        if (confirm === 'n' || confirm === 'N') {
+            return console.log('Operation aborted');
+        }
 
-    if (defender) {
-        console.log('Configuring Defender');
-        configureDefender(function () {
-            console.log('Finished Defender Configuration.');
-        });
-    }
+        if (defender) {
+            console.log('Configuring Defender');
+            configureDefender(function () {
+                console.log('Finished Defender Configuration.');
+            });
+        }
 
-    if (search) {
-        console.log('Configuring Search');
-        configureSearch(function () {
-            console.log('Finished Search Configuration.');
-        });
-    }
-});
+        if (search) {
+            console.log('Configuring Search');
+            configureSearch(function () {
+                console.log('Finished Search Configuration.');
+            });
+        }
+    });
+}
