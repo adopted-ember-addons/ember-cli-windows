@@ -49,10 +49,10 @@ if (!isWin) {
 }
 
 // Check args, run PS
-if (args && args[2] && (args[2] === 'search' || args[2] === 'defender')) {
-    if (args[2] === 'search') {
+if (args && (args.indexOf('search') > -1 || args.indexOf('defender') > -1)) {
+    if (args.indexOf('search') > -1) {
         search = true;
-    } else if (args[2] === 'defender') {
+    } else if (args.indexOf('defender') > -1) {
         defender = true;
     }
 } else {
@@ -81,7 +81,7 @@ if (args.indexOf('headless') > -1) {
     prompt.message = 'Confirm';
     prompt.start();
     console.log(chalk.red.bold('Configure Windows for Ember-Cli Performace'));
-    console.log('If you continue, this tool will open two PS windows to automate configuration of ' + target);
+    console.log('If you continue, this tool will automate the configuration of ' + target);
 
     prompt.get([{
         name: 'confirm',
