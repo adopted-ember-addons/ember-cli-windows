@@ -79,7 +79,7 @@ if (!(IsAdministrator))
 # https://msdn.microsoft.com/en-us/library/windows/desktop/ms724832%28v=vs.85%29.aspx
 $version = [Environment]::OSVersion.Version
 
-if ($version.Major -eq 6 -AND $version.Minor -gt 1) {
+if (($version.Major -eq 6 -AND $version.Minor -gt 1) -or ($version.Major -gt 6)) {
   # Windows 8 and above
   if (Get-Command Set-MpPreference -errorAction SilentlyContinue) {
     Set-MpPreference -ExclusionPath $path
