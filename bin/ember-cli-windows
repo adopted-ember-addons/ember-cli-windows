@@ -12,20 +12,22 @@ var spawn = require('child_process').spawn,
 
 // Helper functions
 function runPowershell(scriptPath, name, cb) {
-    console.log(scriptPath);
-    var child = spawn('powershell.exe', [scriptPath]);
+    var child = spawn('powershell.exe', [scriptPath]),
+        output = [];
 
     child.stdout.on('data', function (data) {
         console.log(data.toString());
+        output.push(data.toString());
     });
 
     child.stderr.on('data', function (data) {
         console.log('Configuration Error: ', data.toString());
+        output.push(data.toString());
     });
 
     child.on('exit', function () {
         console.log(name + ' configured!');
-        cb();
+        cb(output);
     });
     child.stdin.end();
 }
@@ -46,7 +48,7 @@ function configureDefender(cb) {
 
 // Check OS
 if (!isWin) {
-    return console.error('This script configures Windows, but the OS is not Windows.');
+    throw('This script configures Windows, but the OS is not Windows.');
 }
 
 // Check args
@@ -93,7 +95,7 @@ if (args.indexOf('headless') > -1) {
     prompt.get([{
         name: 'confirm',
         description: 'Do you want to proceed? (Y/N)',
-        pattern: /[yYnN]/, 
+        pattern: /[yYnN]/,
         type: 'string',
         required: true
     }], function (err, results) {
@@ -109,8 +111,18 @@ if (args.indexOf('headless') > -1) {
 
         if (defender) {
             console.log('Configuring Defender');
-            configureDefender(function () {
-                console.log('Finished Defender Configuration.');
+            configureDefender(function (output) {
+                if (output && output.indexOf('fallback required') > -1) {
+                    console.log(chalk.red.bold('Automatic Defender configuration is only available on Windows 8 or newer.'));
+                    console.log(chalk.red.bold('Please follow the following steps for manual configuration:'));
+                    console.log('1) Click "Start", search for "Windows Defender" and open the application.');
+                    console.log('2) Click on "Tools" and then "Options".');
+                    console.log('3) Under "Excluded Files and Folders", add the following directory:');
+                    console.log(chalk.green(dir + '/tmp'));
+                    console.log('All done!');
+                } else {
+                    return console.log('Finished Defender Configuration.');
+                }
             });
         }
 

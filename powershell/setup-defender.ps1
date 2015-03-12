@@ -50,5 +50,10 @@ if (!(IsAdministrator))
 
 # Set preference
 "Removing " + $path + " from Windows Defender's Eye"
-Set-MpPreference -ExclusionPath $path
+if (Get-Command Set-MpPreference -errorAction SilentlyContinue) {
+    Set-MpPreference -ExclusionPath $path
+} else {
+    "Defender Configuration not available, fallback required"
+}
+
 "Done"

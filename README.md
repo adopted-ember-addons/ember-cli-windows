@@ -13,5 +13,8 @@ If you want to configure Windows Defender or Windows Search only, add `defender`
 ## Ember Addon
 This tool is also available as an Ember Addon, allowing you to ship the 'optimizing for Windows' capabilities with your project. For more information, [check out the addon here](https://github.com/felixrieseberg/ember-cli-windows-addon).
 
+## Requirements
+Windows 8, Windows 8.1 or Windows 10 heavily recommended. This script still works on Windows 7, but will not be able to automate Defender Configuration. Instead, it'll display manual configurations steps.
+
 ## License
 MIT License, Copyright 2015 Felix Rieseberg & Microsoft. See LICENSE for more information.
