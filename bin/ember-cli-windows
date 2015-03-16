@@ -12,7 +12,7 @@ var spawn = require('child_process').spawn,
 
 // Helper functions
 function runPowershell(scriptPath, name, cb) {
-    var child = spawn('powershell.exe', [scriptPath]),
+    var child = spawn('powershell.exe', ['-NoProfile', '-NoLogo', scriptPath]),
         output = [];
 
     child.stdout.on('data', function (data) {
