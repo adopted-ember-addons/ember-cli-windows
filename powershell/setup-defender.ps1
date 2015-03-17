@@ -16,14 +16,27 @@ Param(
 $tmpPath = $path
 $tmpPath += "\tmp"
 
+function Ensure-RegistryKey([string]$path)
+{
+  # If the registry key does not exist create it
+  if(!(Test-Path $path)) {
+    New-Item $path | Out-Null
+  }
+}
+
 function Add-WindowsDefenderExclusionsPolicy([string]$pathToAdd)
-{                  
-    $registryKey = "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Exclusions\Paths" 
-       
+{
+    $registryKey = "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Exclusions\Paths"
+
+    # Windows Defender may not have the above keys created in some cases
+    Ensure-RegistryKey "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender"
+    Ensure-RegistryKey "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Exclusions"
+    Ensure-RegistryKey $registryKey
+
     $found = $False
-    
+
     $items = Get-Item $registryKey
-        
+
     Foreach ($name in $items.GetValueNames()) {
         if ([string]::Compare($name, $pathToAdd, $True) -eq 0) {
             # Path already added
@@ -31,10 +44,10 @@ function Add-WindowsDefenderExclusionsPolicy([string]$pathToAdd)
             return
         }
     }
-            
+
     Set-ItemProperty -Path $registryKey -Name $pathToAdd -Value 0 -Force
     Write-Host "Path added to defender exclusion list, updating policy"
-            
+
     gpupdate | Out-Null
 }
 
@@ -61,7 +74,7 @@ if (!(IsAdministrator))
         [string[]]$argList = @('-NoProfile', '-NoExit', '-File', $MyInvocation.MyCommand.Path)
         $argList += $MyInvocation.BoundParameters.GetEnumerator() | Foreach {"-$($_.Key)", "$($_.Value)"}
         $argList += $MyInvocation.UnboundArguments
-        Start-Process PowerShell.exe -Verb Runas -WorkingDirectory $pwd -ArgumentList $argList 
+        Start-Process PowerShell.exe -Verb Runas -WorkingDirectory $pwd -ArgumentList $argList
         return
     }
     else
@@ -85,7 +98,7 @@ if (($version.Major -eq 6 -AND $version.Minor -gt 1) -or ($version.Major -gt 6))
     Set-MpPreference -ExclusionPath $path
   } else {
     "Defender Configuration not available, fallback required"
-  }  
+  }
 }
 elseif ($version.Major -eq 6 -AND $version.Minor -eq 1) {
   # Windows 7 / Server 2008 R2
