@@ -27,7 +27,7 @@ $catalog = $sm.GetCatalog("SystemIndex")
 $crawlman = $catalog.GetCrawlScopeManager()
 
 # Add Folders to Rules
-$crawlman.AddUserScopeRule($tmpPath,$false,$true,$null)
+$crawlman.AddUserScopeRule($tmpPath,$false,$false,$null)
 $crawlman.SaveAll()
 
 "Done"
