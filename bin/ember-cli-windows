@@ -33,14 +33,14 @@ function runPowershell(scriptPath, name, cb) {
 }
 
 function configureSearch(cb) {
-    var scriptPath = path.resolve(__dirname, '../powershell/setup-search.ps1') + ' -path ' + dir,
+    var scriptPath = path.resolve(__dirname, '../powershell/setup-search.ps1') + ' -path "' + dir + '"',
         name = 'Windows Search';
 
     runPowershell(scriptPath, name, cb);
 }
 
 function configureDefender(cb) {
-    var scriptPath = path.resolve(__dirname, '../powershell/setup-defender.ps1') + ' -path ' + dir,
+    var scriptPath = path.resolve(__dirname, '../powershell/setup-defender.ps1') + ' -path "' + dir + '"',
         name = 'Windows Defender';
 
     runPowershell(scriptPath, name, cb);
