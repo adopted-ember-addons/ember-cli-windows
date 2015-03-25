@@ -13,6 +13,7 @@ Param(
     [string]$path
 )
 
+# Taken from http://stackoverflow.com/a/6985381/596625
 function Get-ScriptDirectory
 {
     Split-Path $script:MyInvocation.MyCommand.Path
