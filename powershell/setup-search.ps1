@@ -13,6 +13,18 @@ Param(
     [string]$path
 )
 
+# Taken from http://stackoverflow.com/a/6985381/596625
+function Get-ScriptDirectory
+{
+    Split-Path $script:MyInvocation.MyCommand.Path
+}
+
+# Powershell 2 and below didn't have $PSScriptRoot variable
+# and so we must obtain script directory differently in that case
+if(!$PSScriptRoot) {
+    $PSScriptRoot = Get-ScriptDirectory
+}
+
 $tmpPath = "file:///"
 $tmpPath += $path
 $tmpPath += "\tmp\*"
