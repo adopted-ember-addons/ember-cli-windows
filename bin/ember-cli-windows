@@ -13,7 +13,7 @@ var spawn = require('child_process').spawn,
 
 // Helper functions
 function runPowershell(scriptPath, name, cb) {
-    var child = spawn('powershell.exe', ['-NoProfile', '-NoLogo', scriptPath]),
+    var child = spawn('powershell.exe', ['-NoProfile', '-NoLogo', "& {& '"+ scriptPath + "' -path '" + dir + "'}"]), // jshint ignore:line
         output = [];
 
     child.stdout.on('data', function (data) {
@@ -34,14 +34,14 @@ function runPowershell(scriptPath, name, cb) {
 }
 
 function configureSearch(cb) {
-    var scriptPath = path.resolve(__dirname, '../powershell/setup-search.ps1') + ' -path "' + dir + '"',
+    var scriptPath = path.resolve(__dirname, '../powershell/setup-search.ps1'),
         name = 'Windows Search';
 
     runPowershell(scriptPath, name, cb);
 }
 
 function configureDefender(cb) {
-    var scriptPath = path.resolve(__dirname, '../powershell/setup-defender.ps1') + ' -path "' + dir + '"',
+    var scriptPath = path.resolve(__dirname, '../powershell/setup-defender.ps1'),
         name = 'Windows Defender';
 
     runPowershell(scriptPath, name, cb);
