@@ -6,87 +6,104 @@ var spawn        = require('child_process').spawn,
     prompt       = require('prompt'),
     fs           = require('fs'),
     package      = require('../package.json'),
+    _Promise     = require('zousan'),
     isWin        = /^win/.test(process.platform),
     args         = process.argv,
     dir          = process.cwd(),
     defender, search, target;
 
 // Helper functions
-function runPowershell(scriptPath, name, cb) {
-    var child = spawn('powershell.exe', ['-NoProfile', '-NoLogo', '& {& \'' + scriptPath + '\' -path \'' + dir + '\'}']),
-        output = [];
+function runPowershell(scriptPath, name) {
+    return new _Promise(function (resolve) {
+        var child = spawn('powershell.exe', ['-NoProfile', '-NoLogo', '& {& \'' + scriptPath + '\' -path \'' + dir + '\'}']),
+            output = [];
 
-    child.stdout.on('data', function (data) {
-        console.log(data.toString());
-        output.push(data.toString());
-    });
+        child.stdout.on('data', function (data) {
+            output.push(data.toString());
+        });
 
-    child.stderr.on('data', function (data) {
-        console.log('Configuration Error: ', data.toString());
-        output.push(data.toString());
-    });
+        child.stderr.on('data', function (data) {
+            console.log('Configuration Error: ', data.toString());
+            output.push(data.toString());
+        });
 
-    child.on('exit', function () {
-        console.log(name + ' configured!');
-        cb(output);
+        child.on('exit', function () {
+            resolve(output);
+        });
+        child.stdin.end();
     });
-    child.stdin.end();
 }
 
-function configureSearch(cb) {
+function configureSearch() {
     var scriptPath = path.resolve(__dirname, '../powershell/setup-search.ps1'),
         name = 'Windows Search';
 
-    runPowershell(scriptPath, name, cb);
+    return runPowershell(scriptPath, name).then(function () {
+        console.log('Finished Search Configuration.');
+    });
 }
 
-function configureDefender(cb) {
+function configureDefender() {
     var scriptPath = path.resolve(__dirname, '../powershell/setup-defender.ps1'),
         name = 'Windows Defender';
 
-    runPowershell(scriptPath, name, cb);
+    return runPowershell(scriptPath, name).then(function (output) {
+        if (output && output.indexOf('fallback required') > -1) {
+            console.log(chalk.red.bold('Automatic Defender configuration is only available on Windows 8 or newer.'));
+            console.log(chalk.red.bold('Please follow the following steps for manual configuration:'));
+            console.log('1) Click "Start", search for "Windows Defender" and open the application.');
+            console.log('2) Click on "Tools" and then "Options".');
+            console.log('3) Under "Excluded Files and Folders", add the following directory:');
+            console.log(chalk.green(dir + '/tmp'));
+            console.log('All done!');
+        } else {
+            console.log('Finished Defender Configuration.');
+        }
+    });
 }
 
-function checkExecutionPolicy(cb) {
-    var child = spawn('powershell.exe', ['-NoProfile', '-NoLogo', 'Get-ExecutionPolicy']),
-        output = [], unrestricted, i;
+function checkExecutionPolicy() {
+    return new _Promise(function (resolve) {
+        var child = spawn('powershell.exe', ['-NoProfile', '-NoLogo', 'Get-ExecutionPolicy']),
+            output = [], unrestricted, i;
 
-    child.stdout.on('data', function (data) {
-        output.push(data.toString());
-    });
+        child.stdout.on('data', function (data) {
+            output.push(data.toString());
+        });
 
-    child.stderr.on('data', function (data) {
-        output.push(data.toString());
-    });
+        child.stderr.on('data', function (data) {
+            output.push(data.toString());
+        });
 
-    child.on('exit', function () {
-        unrestricted = false;
+        child.on('exit', function () {
+            unrestricted = false;
 
-        for (i = output.length - 1; i >= 0; i = i - 1) {
-            if (output[i].indexOf('Unrestricted') > -1) {
-                unrestricted = true;
-                break;
+            for (i = output.length - 1; i >= 0; i = i - 1) {
+                if (output[i].indexOf('Unrestricted') > -1) {
+                    unrestricted = true;
+                    break;
+                }
             }
-        }
 
-        if (!unrestricted) {
-            cb(false);
-        } else {
-            cb(true);
-        }
+            if (!unrestricted) {
+                reject();
+            } else {
+                resolve();
+            }
+        });
+
+        child.stdin.end();
     });
-
-    child.stdin.end();
 }
 
 function executeConfiguration() {
     if (args.indexOf('headless') > -1) {
         console.log('Configuring Defender');
-        configureDefender(function () {
+        configureDefender().then(function () {
             console.log('Finished Defender Configuration.');
         });
         console.log('Configuring Search');
-        configureSearch(function () {
+        configureSearch().then(function () {
             console.log('Finished Search Configuration.');
         });
     } else {
@@ -112,58 +129,54 @@ function executeConfiguration() {
                 return console.log('Operation aborted');
             }
 
+            if (defender && search) {
+                return configureSearch().then(configureDefender);
+            }
+
             if (defender) {
                 console.log('Configuring Defender');
-                configureDefender(function (output) {
-                    if (output && output.indexOf('fallback required') > -1) {
-                        console.log(chalk.red.bold('Automatic Defender configuration is only available on Windows 8 or newer.'));
-                        console.log(chalk.red.bold('Please follow the following steps for manual configuration:'));
-                        console.log('1) Click "Start", search for "Windows Defender" and open the application.');
-                        console.log('2) Click on "Tools" and then "Options".');
-                        console.log('3) Under "Excluded Files and Folders", add the following directory:');
-                        console.log(chalk.green(dir + '/tmp'));
-                        console.log('All done!');
-                    } else {
-                        return console.log('Finished Defender Configuration.');
-                    }
-                });
+                configureDefender();
             }
 
             if (search) {
                 console.log('Configuring Search');
-                configureSearch(function () {
-                    console.log('Finished Search Configuration.');
-                });
+                configureSearch();
             }
         });
     }
 }
 
 function getArgs() {
-    if (args && (args.indexOf('search') > -1 || args.indexOf('defender') > -1)) {
-        if (args.indexOf('search') > -1) {
+    return new _Promise(function (resolve) {
+        if (args && (args.indexOf('search') > -1 || args.indexOf('defender') > -1)) {
+            if (args.indexOf('search') > -1) {
+                search = true;
+            } else if (args.indexOf('defender') > -1) {
+                defender = true;
+            }
+        } else {
             search = true;
-        } else if (args.indexOf('defender') > -1) {
             defender = true;
         }
-    } else {
-        search = true;
-        defender = true;
-    }
 
-    if (defender && search) {
-        target = 'Windows Defender and Windows Search';
-    } else if (defender && !search) {
-        target = 'Windows Defender';
-    } else if (search && !defender) {
-        target = 'Windows Search';
-    }
+        if (defender && search) {
+            target = 'Windows Defender and Windows Search';
+        } else if (defender && !search) {
+            target = 'Windows Defender';
+        } else if (search && !defender) {
+            target = 'Windows Search';
+        }
+        resolve();
+    });
 }
 
 function ensureTmp() {
-    if (!fs.existsSync(dir + '/tmp')) {
-        fs.mkdirSync(dir + '/tmp');
-    }
+    return new _Promise(function (resolve) {
+        if (!fs.existsSync(dir + '/tmp')) {
+            fs.mkdirSync(dir + '/tmp');
+        }
+        resolve();
+    });
 }
 
 console.log('ember-cli-windows v' + package.version);
@@ -174,6 +187,7 @@ if (!isWin) {
 }
 
 // Execute
-ensureTmp();
-getArgs();
-checkExecutionPolicy(executeConfiguration);
+ensureTmp()
+.then(getArgs)
+.then(checkExecutionPolicy)
+.then(executeConfiguration);
