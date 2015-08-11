@@ -1,19 +1,19 @@
 #! /usr/bin/env node
 
-var spawn = require('child_process').spawn,
-    path = require('path'),
-    chalk = require('chalk'),
-    prompt = require('prompt'),
-    fs = require('fs'),
-    package = require('../package.json'),
-    isWin = /^win/.test(process.platform),
-    args = process.argv,
-    dir = process.cwd(),
+var spawn        = require('child_process').spawn,
+    path         = require('path'),
+    chalk        = require('chalk'),
+    prompt       = require('prompt'),
+    fs           = require('fs'),
+    package      = require('../package.json'),
+    isWin        = /^win/.test(process.platform),
+    args         = process.argv,
+    dir          = process.cwd(),
     defender, search, target;
 
 // Helper functions
 function runPowershell(scriptPath, name, cb) {
-    var child = spawn('powershell.exe', ['-NoProfile', '-NoLogo', "& {& '"+ scriptPath + "' -path '" + dir + "'}"]), // jshint ignore:line
+    var child = spawn('powershell.exe', ['-NoProfile', '-NoLogo', '& {& \'' + scriptPath + '\' -path \'' + dir + '\'}']),
         output = [];
 
     child.stdout.on('data', function (data) {
@@ -47,94 +47,133 @@ function configureDefender(cb) {
     runPowershell(scriptPath, name, cb);
 }
 
-// Check OS
-if (!isWin) {
-    throw('This script configures Windows, but the OS is not Windows.');
+function checkExecutionPolicy(cb) {
+    var child = spawn('powershell.exe', ['-NoProfile', '-NoLogo', 'Get-ExecutionPolicy']),
+        output = [], unrestricted, i;
+
+    child.stdout.on('data', function (data) {
+        output.push(data.toString());
+    });
+
+    child.stderr.on('data', function (data) {
+        output.push(data.toString());
+    });
+
+    child.on('exit', function () {
+        unrestricted = false;
+
+        for (i = output.length - 1; i >= 0; i = i - 1) {
+            if (output[i].indexOf('Unrestricted') > -1) {
+                unrestricted = true;
+                break;
+            }
+        }
+
+        if (!unrestricted) {
+            cb(false);
+        } else {
+            cb(true);
+        }
+    });
+
+    child.stdin.end();
 }
 
-// Check args
-if (args && (args.indexOf('search') > -1 || args.indexOf('defender') > -1)) {
-    if (args.indexOf('search') > -1) {
+function executeConfiguration() {
+    if (args.indexOf('headless') > -1) {
+        console.log('Configuring Defender');
+        configureDefender(function () {
+            console.log('Finished Defender Configuration.');
+        });
+        console.log('Configuring Search');
+        configureSearch(function () {
+            console.log('Finished Search Configuration.');
+        });
+    } else {
+        prompt.message = 'Confirm';
+        prompt.start();
+        console.log(chalk.red.bold('Configure Windows for Ember-Cli Performace'));
+        console.log('If you continue, this tool will automate the configuration of ' + target);
+
+        prompt.get([{
+            name: 'confirm',
+            description: 'Do you want to proceed? (Y/N)',
+            pattern: /[yYnN]/,
+            type: 'string',
+            required: true
+        }], function (err, results) {
+            var confirm = results.confirm;
+
+            if (err) {
+                return console.error(err);
+            }
+
+            if (confirm === 'n' || confirm === 'N') {
+                return console.log('Operation aborted');
+            }
+
+            if (defender) {
+                console.log('Configuring Defender');
+                configureDefender(function (output) {
+                    if (output && output.indexOf('fallback required') > -1) {
+                        console.log(chalk.red.bold('Automatic Defender configuration is only available on Windows 8 or newer.'));
+                        console.log(chalk.red.bold('Please follow the following steps for manual configuration:'));
+                        console.log('1) Click "Start", search for "Windows Defender" and open the application.');
+                        console.log('2) Click on "Tools" and then "Options".');
+                        console.log('3) Under "Excluded Files and Folders", add the following directory:');
+                        console.log(chalk.green(dir + '/tmp'));
+                        console.log('All done!');
+                    } else {
+                        return console.log('Finished Defender Configuration.');
+                    }
+                });
+            }
+
+            if (search) {
+                console.log('Configuring Search');
+                configureSearch(function () {
+                    console.log('Finished Search Configuration.');
+                });
+            }
+        });
+    }
+}
+
+function getArgs() {
+    if (args && (args.indexOf('search') > -1 || args.indexOf('defender') > -1)) {
+        if (args.indexOf('search') > -1) {
+            search = true;
+        } else if (args.indexOf('defender') > -1) {
+            defender = true;
+        }
+    } else {
         search = true;
-    } else if (args.indexOf('defender') > -1) {
         defender = true;
     }
-} else {
-    search = true;
-    defender = true;
+
+    if (defender && search) {
+        target = 'Windows Defender and Windows Search';
+    } else if (defender && !search) {
+        target = 'Windows Defender';
+    } else if (search && !defender) {
+        target = 'Windows Search';
+    }
 }
 
-if (defender && search) {
-    target = 'Windows Defender and Windows Search';
-} else if (defender && !search) {
-    target = 'Windows Defender';
-} else if (search && !defender) {
-    target = 'Windows Search';
+function ensureTmp() {
+    if (!fs.existsSync(dir + '/tmp')) {
+        fs.mkdirSync(dir + '/tmp');
+    }
 }
 
-// Make sure tmp exists
-if (!fs.existsSync(dir + '/tmp')) {
-    fs.mkdirSync(dir + '/tmp');
-}
+console.log('ember-cli-windows v' + package.version);
 
-// Print version
-console.log('Version: ' + package.version);
+// Check OS
+if (!isWin) {
+    return console.error('This script configures Windows, but the OS is not Windows.');
+}
 
 // Execute
-if (args.indexOf('headless') > -1) {
-    console.log('Configuring Defender');
-    configureDefender(function () {
-        console.log('Finished Defender Configuration.');
-    });
-    console.log('Configuring Search');
-    configureSearch(function () {
-        console.log('Finished Search Configuration.');
-    });
-} else {
-    prompt.message = 'Confirm';
-    prompt.start();
-    console.log(chalk.red.bold('Configure Windows for Ember-Cli Performace'));
-    console.log('If you continue, this tool will automate the configuration of ' + target);
-
-    prompt.get([{
-        name: 'confirm',
-        description: 'Do you want to proceed? (Y/N)',
-        pattern: /[yYnN]/,
-        type: 'string',
-        required: true
-    }], function (err, results) {
-        var confirm = results.confirm;
-
-        if (err) {
-            return console.error(err);
-        }
-
-        if (confirm === 'n' || confirm === 'N') {
-            return console.log('Operation aborted');
-        }
-
-        if (defender) {
-            console.log('Configuring Defender');
-            configureDefender(function (output) {
-                if (output && output.indexOf('fallback required') > -1) {
-                    console.log(chalk.red.bold('Automatic Defender configuration is only available on Windows 8 or newer.'));
-                    console.log(chalk.red.bold('Please follow the following steps for manual configuration:'));
-                    console.log('1) Click "Start", search for "Windows Defender" and open the application.');
-                    console.log('2) Click on "Tools" and then "Options".');
-                    console.log('3) Under "Excluded Files and Folders", add the following directory:');
-                    console.log(chalk.green(dir + '/tmp'));
-                    console.log('All done!');
-                } else {
-                    return console.log('Finished Defender Configuration.');
-                }
-            });
-        }
-
-        if (search) {
-            console.log('Configuring Search');
-            configureSearch(function () {
-                console.log('Finished Search Configuration.');
-            });
-        }
-    });
-}
+ensureTmp();
+getArgs();
+checkExecutionPolicy(executeConfiguration);
