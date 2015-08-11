@@ -86,6 +86,9 @@ function checkExecutionPolicy() {
             }
 
             if (!unrestricted) {
+                console.log(chalk.bold.red('Scripts cannot be executed on this system.'));
+                console.log('To fix this issue, please run the command below as Administrator and try again:');
+                console.log('Set-ExecutionPolicy Unrestricted -Scope CurrentUser -Force');
                 reject();
             } else {
                 resolve();
@@ -189,5 +192,5 @@ if (!isWin) {
 // Execute
 ensureTmp()
 .then(getArgs)
-.then(checkExecutionPolicy)
+.then(checkExecutionPolicy);
 .then(executeConfiguration);
