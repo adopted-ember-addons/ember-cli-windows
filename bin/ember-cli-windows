@@ -192,5 +192,5 @@ if (!isWin) {
 // Execute
 ensureTmp()
 .then(getArgs)
-.then(checkExecutionPolicy);
+.then(checkExecutionPolicy)
 .then(executeConfiguration);
