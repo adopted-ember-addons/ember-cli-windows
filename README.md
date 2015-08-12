@@ -20,7 +20,7 @@ ember-cli-windows
 ```
 
 ## Run Ember Cli as Administrator
-Additional performance can be gained by using an elevated prompt, which can be achieved by starting PowerShell or CMD ‘as Administrator’. If you do not have administrative rights on your machine, see the [Ember Cli section on symlinks](http://www.ember-cli.com/#symlinks-on-windows) for information on how to enable additional performance gains.
+Additional performance can be gained by using an elevated prompt, which can be achieved by starting PowerShell or CMD ‘as Administrator’. If you do not have administrative rights on your machine, see the [Ember Cli section on symlinks](http://www.ember-cli.com/user-guide/#symlinks-on-windows) for information on how to enable additional performance gains.
 
 ## Ember Addon
 This tool is also available as an Ember Addon, allowing you to ship the 'optimizing for Windows' capabilities with your project. For more information, [check out the addon here](https://github.com/felixrieseberg/ember-cli-windows-addon).
