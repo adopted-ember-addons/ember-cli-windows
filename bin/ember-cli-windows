@@ -63,7 +63,7 @@ function configureDefender() {
 }
 
 function checkExecutionPolicy() {
-    return new _Promise(function (resolve) {
+    return new _Promise(function (resolve, reject) {
         var child = spawn('powershell.exe', ['-NoProfile', '-NoLogo', 'Get-ExecutionPolicy']),
             output = [], unrestricted, i;
 
