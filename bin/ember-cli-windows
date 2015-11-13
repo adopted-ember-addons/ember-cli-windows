@@ -56,6 +56,9 @@ function configureDefender() {
             console.log('3) Under "Excluded Files and Folders", add the following directory:');
             console.log(chalk.green(dir + '/tmp'));
             console.log('All done!');
+        } else if (output && output.indexOf('is it disabled?') > -1) {
+            console.log(chalk.bold.red('Windows Defender seems to be disabled.'));
+            console.log('If that is correct, further configuration is not required.');
         } else {
             console.log('Finished Defender Configuration.');
         }

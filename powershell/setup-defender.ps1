@@ -18,10 +18,10 @@ $tmpPath += "\tmp"
 
 function Ensure-RegistryKey([string]$path)
 {
-  # If the registry key does not exist create it
-  if(!(Test-Path $path)) {
-    New-Item $path | Out-Null
-  }
+    # If the registry key does not exist create it
+    if (!(Test-Path $path)) {
+        New-Item $path | Out-Null
+    }
 }
 
 function Add-WindowsDefenderExclusionsPolicy([string]$pathToAdd)
@@ -83,26 +83,31 @@ if (!(IsAdministrator))
     }
 }
 
-
-
 # Set preference
 "Removing " + $path + " from Windows Defender's Eye"
-
 
 # https://msdn.microsoft.com/en-us/library/windows/desktop/ms724832%28v=vs.85%29.aspx
 $version = [Environment]::OSVersion.Version
 
 if (($version.Major -eq 6 -AND $version.Minor -gt 1) -or ($version.Major -gt 6)) {
-  # Windows 8 and above
-  if (Get-Command Set-MpPreference -errorAction SilentlyContinue) {
-    Set-MpPreference -ExclusionPath $path
-  } else {
-    "Defender Configuration not available, fallback required"
-  }
+    # Windows 8 and above
+    if (Get-Command Set-MpPreference -errorAction SilentlyContinue) {
+        Try {
+            Set-MpPreference -ExclusionPath $path
+        } Catch {
+            "Defender Configuration not available, is it disabled?"
+        }
+    } else {
+        "Defender Configuration not available, fallback required"
+    }
 }
 elseif ($version.Major -eq 6 -AND $version.Minor -eq 1) {
-  # Windows 7 / Server 2008 R2
-  Add-WindowsDefenderExclusionsPolicy $path
+    # Windows 7 / Server 2008 R2
+    Try {
+        Add-WindowsDefenderExclusionsPolicy $path
+    } Catch {
+        "Defender Configuration not available, is it disabled?"
+    }
 }
 
 "Done"
