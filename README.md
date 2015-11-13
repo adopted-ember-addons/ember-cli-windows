@@ -1,4 +1,5 @@
 ## Automatically Configure Windows for Ember Cli Performance
+<a href="http://badge.fury.io/js/ember-cli-windows"><img src="https://badge.fury.io/js/ember-cli-windows.svg" alt="npm version" height="18"></a> <a href="https://david-dm.org/felixrieseberg/ember-cli-windows"><img src="https://david-dm.org/felixrieseberg/ember-cli-windows.svg" alt="dependencies" height="18px"></a> <img src="https://img.shields.io/npm/dm/ember-cli-windows.svg" height="18px" />
 Dramatically improve build speed during `ember build` and `ember serve`!
 
 Ember and Ember Cli are some of the best tools for the development of sophisticated web applications. A lot of its magic is in the automatic build tool, which also allows for incremental builds during development. Those builds can be a bit slow on Windows - correct configuration of Windows Defender and the Windows Search Index improve the speed dramatically. Made with :heart: by Microsoft.
