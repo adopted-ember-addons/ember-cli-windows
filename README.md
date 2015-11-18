@@ -13,6 +13,8 @@ ember-cli-windows
 
 If you want to configure Windows Defender or Windows Search only, add `defender` or `search` as a parameter.
 
+If you want to skip the confirmation, add `headless` as a parameter.
+
 Should you get a PSSecurityException, allow your PowerShell to execute the script by running the following command from an elevated PowerShell. To run PowerShell as Administrator, click Start, search for PowerShell, right-click PowerShell and select `Run as Administrator`.
 
 ```
