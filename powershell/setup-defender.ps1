@@ -89,19 +89,22 @@ if (!(IsAdministrator))
 # https://msdn.microsoft.com/en-us/library/windows/desktop/ms724832%28v=vs.85%29.aspx
 $version = [Environment]::OSVersion.Version
 
-if (($version.Major -eq 6 -AND $version.Minor -gt 1) -or ($version.Major -gt 6)) {
+if (($version.Major -eq 6 -AND $version.Minor -gt 1) -or ($version.Major -gt 6))
+{
     # Windows 8 and above
-    if (Get-Command Set-MpPreference -errorAction SilentlyContinue) {
+    if (Get-Command Set-MpPreference) {
         Try {
-            Set-MpPreference -ExclusionPath $path
+            Set-MpPreference -ExclusionPath $path -ErrorAction Stop
         } Catch {
             "Defender Configuration not available, is it disabled?"
         }
+        $ErrorActionPreference = "Continue"
     } else {
         "Defender Configuration not available, fallback required"
     }
 }
-elseif ($version.Major -eq 6 -AND $version.Minor -eq 1) {
+elseif ($version.Major -eq 6 -AND $version.Minor -eq 1)
+{
     # Windows 7 / Server 2008 R2
     Try {
         Add-WindowsDefenderExclusionsPolicy $path
