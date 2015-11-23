@@ -1,16 +1,23 @@
 #! /usr/bin/env node
 
-var spawn        = require('child_process').spawn,
+var program      = require('commander'),
+    spawn        = require('child_process').spawn,
     path         = require('path'),
     chalk        = require('chalk'),
     prompt       = require('prompt'),
     fs           = require('fs'),
-    package      = require('../package.json'),
+    version      = require('../package.json').version,
     _Promise     = require('zousan'),
     isWin        = /^win/.test(process.platform),
     args         = process.argv,
-    dir          = process.cwd(),
-    defender, search, target;
+    dir          = process.cwd();
+    
+program
+  .version(version)
+  .option('-D, --defender', 'Configure Windows Defender')
+  .option('-S, --search', 'Configure Windows Search')
+  .option('-H, --headless', 'Run without prompting for confirmation')
+  .parse(process.argv);
 
 // Helper functions
 function runPowershell(scriptPath, name) {
@@ -103,20 +110,24 @@ function checkExecutionPolicy() {
 }
 
 function executeConfiguration() {
-    if (args.indexOf('headless') > -1) {
-        console.log('Configuring Defender');
-        configureDefender().then(function () {
-            console.log('Finished Defender Configuration.');
-        });
-        console.log('Configuring Search');
-        configureSearch().then(function () {
-            console.log('Finished Search Configuration.');
-        });
+    if (program.headless) {
+        if (program.defender || (!program.defender && !program.search)) {
+            console.log('Configuring Defender');
+            configureDefender().then(function () {
+                console.log('Finished Defender Configuration.');
+            });   
+        }
+        if (program.search || (!program.defender && !program.search)) {
+            console.log('Configuring Search');
+            configureSearch().then(function () {
+                console.log('Finished Search Configuration.');
+            });
+        }
     } else {
         prompt.message = 'Confirm';
         prompt.start();
         console.log(chalk.red.bold('Configure Windows for Ember-Cli Performace'));
-        console.log('If you continue, this tool will automate the configuration of ' + target);
+        console.log('If you continue, this tool will automate the configuration of ' + getTarget());
 
         prompt.get([{
             name: 'confirm',
@@ -135,16 +146,16 @@ function executeConfiguration() {
                 return console.log('Operation aborted');
             }
 
-            if (defender && search) {
+            if (program.defender && program.search || (!program.defender && !program.search)) {
                 return configureSearch().then(configureDefender);
             }
 
-            if (defender) {
+            if (program.defender) {
                 console.log('Configuring Defender');
                 configureDefender();
             }
 
-            if (search) {
+            if (program.search) {
                 console.log('Configuring Search');
                 configureSearch();
             }
@@ -152,28 +163,18 @@ function executeConfiguration() {
     }
 }
 
-function getArgs() {
-    return new _Promise(function (resolve) {
-        if (args && (args.indexOf('search') > -1 || args.indexOf('defender') > -1)) {
-            if (args.indexOf('search') > -1) {
-                search = true;
-            } else if (args.indexOf('defender') > -1) {
-                defender = true;
-            }
-        } else {
-            search = true;
-            defender = true;
-        }
-
-        if (defender && search) {
-            target = 'Windows Defender and Windows Search';
-        } else if (defender && !search) {
-            target = 'Windows Defender';
-        } else if (search && !defender) {
-            target = 'Windows Search';
-        }
-        resolve();
-    });
+function getTarget() {
+    var target;
+ 
+    if (program.defender && program.search || (!program.defender && !program.search)) {
+        target = 'Windows Defender and Windows Search';
+    } else if (program.defender && !program.search) {
+        target = 'Windows Defender';
+    } else if (program.search && !program.defender) {
+        target = 'Windows Search';
+    }
+    
+    return target;
 }
 
 function ensureTmp() {
@@ -185,7 +186,7 @@ function ensureTmp() {
     });
 }
 
-console.log('ember-cli-windows v' + package.version);
+console.log('ember-cli-windows v' + version);
 
 // Check OS
 if (!isWin) {
@@ -194,6 +195,5 @@ if (!isWin) {
 
 // Execute
 ensureTmp()
-.then(getArgs)
 .then(checkExecutionPolicy)
 .then(executeConfiguration);

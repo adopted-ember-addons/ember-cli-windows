@@ -39,6 +39,7 @@
   },
   "dependencies": {
     "chalk": "^1.1.1",
+    "commander": "^2.9.0",
     "prompt": "^0.2.14",
     "zousan": "^1.3.0"
   }
