@@ -11,9 +11,22 @@ npm install ember-cli-windows -g
 ember-cli-windows
 ```
 
-If you want to configure Windows Defender or Windows Search only, add `defender` or `search` as a parameter.
+#### Parameters and Configuration
+Usage: 
+```
+ember-cli-windows [options]
+```
 
-If you want to skip the confirmation, add `headless` as a parameter.
+If you run ember-cli-windows without any parameters, it will first prompt for confirmation, and then automatically configure Windows Defender and Windows Search for the current directory.
+
+Options:
+```
+-h, --help      Output usage information
+-V, --version   Output the version number
+-D, --defender  Configure Windows Defender
+-S, --search    Configure Windows Search
+-H, --headless  Run without prompting for confirmation
+```
 
 Should you get a PSSecurityException, allow your PowerShell to execute the script by running the following command from an elevated PowerShell. To run PowerShell as Administrator, click Start, search for PowerShell, right-click PowerShell and select `Run as Administrator`.
 
