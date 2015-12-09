@@ -1,6 +1,9 @@
 {
   "name": "ember-cli-windows",
   "version": "2.1.1",
+  "os": [
+    "win32"
+  ],
   "private": false,
   "preferGlobal": "true",
   "bin": {
