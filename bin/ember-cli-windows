@@ -190,7 +190,7 @@ console.log('ember-cli-windows v' + version);
 
 // Check OS
 if (!isWin) {
-    return console.error('This script configures Windows, but the OS is not Windows.');
+    return console.log('This script configures Windows, but the OS is not Windows -  so we\'re done here.');
 }
 
 // Execute
