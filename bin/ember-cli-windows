@@ -126,7 +126,7 @@ function executeConfiguration() {
     } else {
         prompt.message = 'Confirm';
         prompt.start();
-        console.log(chalk.red.bold('Configure Windows for Ember-Cli Performace'));
+        console.log(chalk.red.bold('Configure Windows for Ember-Cli Performance'));
         console.log('If you continue, this tool will automate the configuration of ' + getTarget());
 
         prompt.get([{
