@@ -92,9 +92,9 @@ $version = [Environment]::OSVersion.Version
 if (($version.Major -eq 6 -AND $version.Minor -gt 1) -or ($version.Major -gt 6))
 {
     # Windows 8 and above
-    if (Get-Command Set-MpPreference) {
+    if (Get-Command Add-MpPreference) {
         Try {
-            Set-MpPreference -ExclusionPath $path -ErrorAction Stop
+            Add-MpPreference -ExclusionPath $path -ErrorAction Stop
         } Catch {
             "Defender Configuration not available, is it disabled?"
         }
